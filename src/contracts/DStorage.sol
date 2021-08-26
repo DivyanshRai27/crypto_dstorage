@@ -2,8 +2,7 @@ pragma solidity ^0.5.0;
 
 contract DStorage {
   string public name = 'DStorage';
-  // Number of files
-  // Mapping fileId=>Struct 
+  uint public fileCount = 0;
   mapping(uint => File) public files;
 
   // Struct
@@ -24,7 +23,9 @@ contract DStorage {
   constructor() public {
   }
 
-  function uploadFile() {
+  function uploadFile(string memory _fileHash, uint _fileSize, string memory _fileType, string memory _fileName, string memory _fileDescription) public {
+    fileCount ++;
+    files[fileCount] = File(fileCount, _fileHash, _fileSize, _fileType, _fileName, _fileDescription, now, msg.sender);
     // Make sure the file hash exists
 
     // Make sure file type exists
