@@ -79,25 +79,36 @@ captureFile = event => {
   }
 }
 
-  //Upload File
-  uploadFile = description => {
-    console.log("Submitting to IPFS")
+uploadFile = description => {
+  console.log("Submitting file to IPFS...")
 
-    //Add file to the IPFS
-    ipfs.add(this.state.buffer, (error, result) => {
-      console.log('IPFS result', result)
+  // Add file to the IPFS
+  ipfs.add(this.state.buffer, (error, result) => {
+    console.log('IPFS result', result.size)
+    if(error) {
+      console.error(error)
+      return
+    }
+
+    this.setState({ loading: true })
+    // Assign value for the file without extension
+    if(this.state.type === ''){
+      this.setState({type: 'none'})
+    }
+    this.state.dstorage.methods.uploadFile(result[0].hash, result[0].size, this.state.type, this.state.name, description).send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.setState({
+       loading: false,
+       type: null,
+       name: null
+     })
+     window.location.reload()
+    }).on('error', (e) =>{
+      window.alert('Error')
+      this.setState({loading: false})
     })
+  })
+}
 
-      //Check If error
-        //Return error
-
-      //Set state to loading
-
-      //Assign value for the file without extension
-
-      //Call smart contract uploadFile function 
-
-  }
 
   //Set states
   constructor(props) {
