@@ -81,8 +81,12 @@ captureFile = event => {
 
   //Upload File
   uploadFile = description => {
+    console.log("Submitting to IPFS")
 
     //Add file to the IPFS
+    ipfs.add(this.state.buffer, (error, result) => {
+      console.log('IPFS result', result)
+    })
 
       //Check If error
         //Return error
