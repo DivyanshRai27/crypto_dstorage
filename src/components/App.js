@@ -1,4 +1,4 @@
-//import DStorage from '../abis/DStorage.json'
+import DStorage from '../abis/DStorage.json'
 import React, { Component } from 'react';
 import Navbar from './Navbar'
 import Main from './Main'
@@ -6,6 +6,8 @@ import Web3 from 'web3';
 import './App.css';
 
 //Declare IPFS
+const ipfsClient = require('ipfs-http-client')
+const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' }) // leaving out the arguments will default to these values
 
 class App extends Component {
 
@@ -36,24 +38,46 @@ class App extends Component {
     //Load account
     const accounts = await web3.eth.getAccounts() 
     this.setState({ account: accounts[0] })
-    //Network ID
-
-    //IF got connection, get data from contracts
-      //Assign contract
-
-      //Get files amount
-
-      //Load files&sort by the newest
-
-    //Else
-      //alert Error
-
+    
+    // Network ID
+    const networkId = await web3.eth.net.getId()
+    const networkData = DStorage.networks[networkId]
+    if(networkData) {
+      // Assign contract
+      const dstorage = new web3.eth.Contract(DStorage.abi, networkData.address)
+      this.setState({ dstorage })
+      // Get files amount
+      const filesCount = await dstorage.methods.fileCount().call()
+      this.setState({ filesCount })
+      // Load files&sort by the newest
+      for (var i = filesCount; i >= 1; i--) {
+        const file = await dstorage.methods.files(i).call()
+        this.setState({
+          files: [...this.state.files, file]
+        })
+      }
+    } else {
+      window.alert('DStorage contract not deployed to detected network.')
+    }
   }
 
-  // Get file from user
-  captureFile = event => {
-  }
+// Get file from user
+captureFile = event => {
+  event.preventDefault()
 
+  const file = event.target.files[0]
+  const reader = new window.FileReader()
+
+  reader.readAsArrayBuffer(file)
+  reader.onloadend = () => {
+    this.setState({
+      buffer: Buffer(reader.result),
+      type: file.type,
+      name: file.name
+    })
+    console.log('buffer', this.state.buffer)
+  }
+}
 
   //Upload File
   uploadFile = description => {
@@ -75,6 +99,12 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      account: '',
+      dstorage: null,
+      files:[],
+      loading: false,
+      type: null,
+      name: null
     }
 
     //Bind functions
